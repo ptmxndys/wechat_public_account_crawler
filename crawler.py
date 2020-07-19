@@ -16,14 +16,15 @@ from lxml import etree, html
 import hashlib
 import shutil
 
-
 DIST_DIR = 'dist'
 
 
 def grep_media():
-
     with open(os.path.join(sys.path[0], 'config.json'), encoding='utf-8') as json_data:
         conf = json.loads(json_data.read())
+
+    if not os.path.exists(os.path.join(sys.path[0], 'media')):
+        os.mkdir(os.path.join(sys.path[0], 'media'))
 
     for account_name, read_mode in conf['Accounts'].items():
 
@@ -43,7 +44,7 @@ def grep_media():
 
         for idx, row in article_list.iterrows():
 
-            logging.info('working on ' + str(idx+1))
+            logging.info('working on ' + str(idx + 1))
 
             # Skip file we already captured
             file_name = os.path.join(sys.path[0], account_name + '_' + str(idx) + '.html')
@@ -119,7 +120,6 @@ def grep_media():
 
 
 def grep_content():
-
     with open(os.path.join(sys.path[0], 'config.json'), encoding='utf-8') as json_data:
         conf = json.loads(json_data.read())
 
@@ -171,7 +171,7 @@ def get_summary(account_name):
 
         # open HTML file
         file_name = account_name + '_' + str(idx) + '_parsed.html'
-        with open(file_name, 'r',  encoding='utf-8') as f:
+        with open(file_name, 'r', encoding='utf-8') as f:
             page = f.read()
 
         # generate HTML tree
@@ -179,7 +179,8 @@ def get_summary(account_name):
         tree = etree.parse(StringIO(page), parser=parser)
 
         # Get author from mess
-        author = tree.xpath(r'//html/body/div/div/div/div/div/div/span[@class="rich_media_meta rich_media_meta_text"]/text()')
+        author = tree.xpath(
+            r'//html/body/div/div/div/div/div/div/span[@class="rich_media_meta rich_media_meta_text"]/text()')
 
         # Remove \n and space
         if len(author) > 0:
@@ -208,7 +209,8 @@ def get_summary(account_name):
 
     # Generate summary table
     article_list['author'] = authors
-    article_list['publish_time'] = [datetime.strptime(x, '%Y-%m-%d') if x else datetime(1900, 1, 1) for x in publish_time]
+    article_list['publish_time'] = [datetime.strptime(x, '%Y-%m-%d') if x else datetime(1900, 1, 1) for x in
+                                    publish_time]
     article_list['link'] = link
 
     writer = pd.ExcelWriter(os.path.join(sys.path[0], account_name + '_summary.xlsx'))
@@ -228,12 +230,17 @@ def get_summary(account_name):
           </thead>
           <tbody>
         """
+
+    if not os.path.exists(os.path.join(sys.path[0], DIST_DIR)):
+        os.mkdir(os.path.join(sys.path[0], DIST_DIR))
+
     for row in article_list.iterrows():
         shutil.copyfile(row[1]['link'], os.path.join(DIST_DIR, row[1]['link']))
 
         html_tbl += '<tr>\n' + \
                     f"<td>{row[1]['publish_time'].strftime('%Y-%m-%d')}</td>\n" + \
-                    '<td><a href="file://{}">{}</a></br></td>\n'.format(os.path.join(sys.path[0], DIST_DIR, row[1]['link']), row[1]['title']) + \
+                    '<td><a href="file://{}">{}</a></br></td>\n'.format(
+                        os.path.join(sys.path[0], DIST_DIR, row[1]['link']), row[1]['title']) + \
                     '</tr>\n'
 
     html_tbl += """
@@ -277,7 +284,6 @@ def get_summary(account_name):
 
 
 def get_article_links():
-
     # Read config
     with open(os.path.join(sys.path[0], 'config.json'), encoding='utf-8') as json_data:
         conf = json.loads(json_data.read())
@@ -322,7 +328,8 @@ def get_article_links():
     sleep(uniform(2, 4))
 
     # Click '查找文章' radio button on modal
-    radio = [x for x in driver.find_elements_by_class_name('weui-desktop-form__check-content') if x.text == r'查找公众号文章'][0]
+    radio = [x for x in driver.find_elements_by_class_name('weui-desktop-form__check-content') if x.text == r'查找公众号文章'][
+        0]
     radio.click()
     sleep(uniform(2, 4))
 
@@ -357,7 +364,8 @@ def get_article_links():
         # Get article links
         while True:
             # Find title and publish date of each article
-            elms = zip(driver.find_elements_by_class_name('quote_article_title'), driver.find_elements_by_class_name('quote_article_date'))
+            elms = zip(driver.find_elements_by_class_name('quote_article_title'),
+                       driver.find_elements_by_class_name('quote_article_date'))
 
             for elm, dt in elms:
 
@@ -405,8 +413,5 @@ def main():
     get_summary(r'公众号')
 
 
-
 if __name__ == "__main__":
-    # execute only if run as a script
     main()
-
