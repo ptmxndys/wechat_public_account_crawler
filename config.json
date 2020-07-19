@@ -1,0 +1,8 @@
+{
+ "RawDBPrefix": "_raw",
+  "MediaIndexPrefix": "_media_index",
+  "Accounts":
+  {
+    "瀚海数据说": "full"
+  }
+}

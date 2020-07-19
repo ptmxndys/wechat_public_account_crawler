@@ -1,0 +1,9 @@
+.env
+/.idea
+*.log
+*.html
+*.xlsx
+*.pkl
+.DS_Store
+/dist
+/media
